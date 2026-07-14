@@ -4,3 +4,10 @@ dist/
 .DS_Store
 Thumbs.db
 .agents/
+
+.env
+.env.*
+vite-dev.log
+vite-dev.err.log
+vite-dev.pid
+
