@@ -10,6 +10,7 @@ export default function App() {
   const maskRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cursorPos, setCursorPos] = useState({ x: -999, y: -999 });
+  const [isRevealing, setIsRevealing] = useState(false);
   const [isMobile, setIsMobile] = useState(() => window.matchMedia('(max-width: 639px)').matches);
   const mediaTransform = 'translate(0px, 132px) scale(0.79)';
 
@@ -29,6 +30,7 @@ export default function App() {
     const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
     const handleMouseMove = (event: MouseEvent) => {
       if (!hasFinePointer) return;
+      setIsRevealing(true);
       mouse.current.x = event.clientX;
       mouse.current.y = event.clientY;
     };
@@ -82,6 +84,13 @@ export default function App() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    if (!isRevealing) {
+      mask.style.opacity = '0';
+      mask.style.maskImage = 'none';
+      mask.style.webkitMaskImage = 'none';
+      return;
+    }
+
     const gradient = ctx.createRadialGradient(cursorPos.x, cursorPos.y, 0, cursorPos.x, cursorPos.y, SPOTLIGHT_R);
     gradient.addColorStop(0, 'rgba(255,255,255,1)');
     gradient.addColorStop(0.4, 'rgba(255,255,255,1)');
@@ -100,13 +109,14 @@ export default function App() {
     mask.style.webkitMaskImage = maskImage;
     mask.style.maskSize = '100% 100%';
     mask.style.webkitMaskSize = '100% 100%';
-  }, [cursorPos]);
+    mask.style.opacity = '1';
+  }, [cursorPos, isRevealing]);
 
   return (
     <div className="min-h-screen bg-black tracking-[-0.02em]" style={{ fontFamily: 'Inter' }}>
       {isMobile ? (
         <video
-          src="/reveal.mp4"
+          src="./reveal.mp4"
           autoPlay
           muted
           loop
@@ -121,9 +131,13 @@ export default function App() {
             className="fixed inset-0 bg-center bg-cover bg-no-repeat"
             style={{ backgroundImage: `url(${baseImage})`, transform: mediaTransform }}
           />
-          <div ref={maskRef} className="fixed inset-0 pointer-events-none overflow-hidden">
+          <div
+            ref={maskRef}
+            className="fixed inset-0 pointer-events-none overflow-hidden transition-opacity duration-300"
+            style={{ opacity: 0 }}
+          >
             <video
-              src="/reveal.mp4"
+              src="./reveal.mp4"
               autoPlay
               muted
               loop
